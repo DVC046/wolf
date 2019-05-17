@@ -23,9 +23,9 @@ let wolf = {};
 let order = {};
 let getOrder = {};
 const config = {
-    tradingPair: 'ADAETH',
-    profitPercentage: Number('9')/100,
-    budget: Number('.015'),
+    tradingPair: 'ETCETH',
+    profitPercentage: Number('7')/100,
+    budget: Number('.01'),
     compound: 'true',
     profitLockPercentage: Number('5')/100,
     stopLimitPercentage: Number('10')/100

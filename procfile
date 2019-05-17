@@ -1,2 +1,2 @@
 web: node npm test
-web: node npm start
+web: node npm run simulator
