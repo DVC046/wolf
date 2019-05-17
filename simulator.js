@@ -23,7 +23,7 @@ let wolf = {};
 let order = {};
 let getOrder = {};
 const config = {
-    tradingPair: 'ETCETH',
+    tradingPair: 'ADAETH',
     profitPercentage: Number('7')/100,
     budget: Number('.01'),
     compound: 'true',
