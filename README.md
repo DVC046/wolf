@@ -1,112 +1,118 @@
-# Project W.O.L.F
-    Binance trading bot for NodeJS.
+# Binance Trader Bot (NodeJS)
 
-IT IS NOT MY RESPONSIBILITY IF YOU GAIN/LOSE MONEY.  THERE IS NO SUCH THING AS PERFECT SOFTWARE.  PLEASE LOOK THROUGH THE CODEBASE/DOCUMENTATION TO UNDERSTAND THE RISKS YOU ARE TAKING.  
+[![Build Status](https://travis-ci.org/ignaciop000/binance-traderBot.svg?branch=master)](https://travis-ci.org/ignaciop000/binance-traderBot)
+[![codecov](https://codecov.io/gh/ignaciop000/binance-traderBot/branch/master/graph/badge.svg)](https://codecov.io/gh/ignaciop000/binance-traderBot)
 
-### Setup
-1. Create an `.env` file in your root directory.
-2. Copy and paste `template.env` into `.env`
-3. Fill out *required* environment variables
-4. `npm test`
-5. (Optional) `npm run simulator`
-6. `npm start`
+This is a bot for auto trading the binance.com exchange based on https://github.com/yasinkuyu/binance-trader
 
-### Release Notes
-`v3.6.1` June 13, 2018
-- Refactored watchlist
+![Screenshot](https://github.com/ignaciop000/binance-traderBot/blob/master/img/screenshot.png)
 
-`v3.6.0` June 12, 2018
-- FEATURE REQUEST: Better terminal logging that doesn't make you want to throw up. https://github.com/austinyearlykim/wolf/issues/32
-- README.md updates
+## Configuration
 
-`v3.5.0` May 27, 2018
-- FEATURE: full integration test suite! `npm run simulation`.  Feel free to run it as many times as you like, it will only mimic orders, and never create a real one.
+1. [Signup](https://www.binance.com/?ref=25579592) for Binance
+1. Enable Two-factor Authentication
+1. Go API Center, [Create New](https://www.binance.com/userCenter/createApi.html) Api Key
 
-- BUGFIX: stop limit now properly triggers. https://github.com/austinyearlykim/wolf/issues/41
-- BUGFIX: quantitySigFig() now properly checks against correct references from binanace websocket. https://github.com/austinyearlykim/wolf/issues/50
+        [✓] Read Info [✓] Enable Trading [X] Enable Withdrawals
 
-`v3.4.2` May 23, 2018
-- BUGFIX: quantitySigFig() for USDT now correctly returns a non-negative number https://github.com/austinyearlykim/wolf/issues/40
+1. Get an API and Secret Key, insert into `config.js`
 
-`v3.4.1` May 22, 2018
-- BUGFIX: mocha, available balance, test fixed. https://github.com/austinyearlykim/wolf/issues/38
-- Corrects `template.env`.
-- Deprecated `STOP_LOSS_PERCENTAGE` from `.env`
+		{
+			api: "<API key for account access>",
+    		secret: "<Secret key for account access>"
+		}
 
-`v3.4.0` May 19, 2018
-- FEATURE REQUEST: Adds support for `USDT` and `BNB`. https://github.com/austinyearlykim/wolf/issues/27
-- `TRADING_PAIR` in `.env` is now deprecated.  Replaced by `TARGET_ASSET` and `BASE_ASSET`.
-- `TWILIO_ENABLED` and all other Twilio related variables are deprecated.  It may be back in the future. PR anybody?
+        [API Docs](https://www.binance.com/restapipub.html) 
+        
+## Requirements
 
-`v3.3.0` March 26, 2018
-- FEATURE: adds profit lock feature.
-- FEATURE: adds stop limit feature.
+	[NodeJs](https://nodejs.org/en/)
 
-`v3.2.0` March 10, 2018
-- FEATURE REQUEST: compounding budget feature. https://github.com/austinyearlykim/wolf/issues/2
-- Adds release notes to README.md.
+## Installation
 
-### Documentation
-##### `How it works`
-W.O.L.F calculates how much to spend *per transaction* based on your `BUDGET`.  It watches price movements of a particular trading pair (`TARGET_ASSET` + `BASE_ASSET`) in real-time and will buy at the current price and sell for a calculated `PROFIT_PERCENTAGE`.
+	npm install
 
-The synchronous nature of W.O.L.F makes sure that your trades execute as fast *and* safe as possible.  And only sells when it's profitable!  Transaction fees are taken account of!  Easy peasy!
+## Usage
 
-Brief technical step-by-step:  
-1. Wolf calculates quantity of coin to purchase based of `BUDGET`.
-2. Wolf places a limit buy order at *market price*.
-3. Wolf populates the *queue* with the *unfilled* limit buy order.
-    - The *queue* is as a data store where *unfilled* orders live until they've been *filled*.
-    - The *queue* is traversed every tick that's fired from the Binance websocket. *About once a second, or faster.*
-4. Once the order is *filled*, Wolf puts the order into the *watchlist*.
-    - The *watchlist* is a data store where *filled* orders live until they reach your desired `PROFIT_PERCENTAGE`, or any other *optional* `.env` triggers.
-    - The *watchlist* is traversed every tick from the Binance websocket as well.
-5. Once your order is ready to be sold, Wolf puts an *unfilled* sell order in the *queue*.
-6. Once the *queue* detects that the *unfilled* sell order has been *filled*, Wolf will repeat steps 1-6.
+    npm start
 
-##### `.env`
-###### REQUIRED
-- `BUDGET` is the most you're willing to spend.  The unit of this number is your `BASE_ASSET`; e.g if your desired trading pair is `ADAETH`, then `BUDGET` is the amount of `ETH` you're willing to spend.
-- `PROFIT_PERCENTAGE` is in whole numbers; e.g `1.2` is one-point-two percent.
-- `TARGET_ASSET` must be in upper-case; e.g if your desired trading pair is `ADAETH`. Your `TARGET_ASSET` is `ADA`.
-- `BASE_ASSET` must be in upper-case; e.g if your desired trading pair is `ADAETH`. Your `BASE_ASSET` is `ETH`.
-###### OPTIONAL
-- `COMPOUND` can be set to true to have your budget programmatically increase as you profit for more profit potential.
-- `PROFIT_LOCK_PERCENTAGE` is in whole numbers; e.g `1.2` is one-point-two percent.  
-    - Example: Your `PROFIT_PERCENTAGE` is 5% and your `PROFIT_LOCK_PERCENTAGE` is 3%.  W.O.L.F will wait for your order to sell at 5%, however if it passes 3% at anytime and then dips back to say ~2.7% it will do a market order to *lock* some of your gains.   It's important to note that your sell at your `PROFIT_LOCK_PERCENTAGE` will only trigger if the price passes your `PROFIT_LOCK_PERCENTAGE` then dips backwards, otherwise W.O.L.F will continue watching to see if you reach your, more desirable, `PROFIT_PERCENTAGE`.
-- `STOP_LIMIT_PERCENTAGE` is in whole numbers; e.g `1.2` is one-point-two percent.  If at any point the current market price of your position dips below this percentage, W.O.L.F will sell your position at *market price* with a *limit* order.
+    Open Browser (http://localhost:3001)
+    
+    Example coins.js 
 
-##### `npm start`
-This command runs tests before starting the bot.  It then kicks off a recursive loop of functions that keep track of best BUY/SELL prices updated by the second and executes trades that are favored for you.
+	[
+		{
+			symbol:'ZECBTC',
+			quantity:0,
+			stop_loss:0,
+			mode:'profit',
+			profit:1.0,
+			increasing:0.00000001,
+			decreasing:0.00000001,
+			loop:0,
+			wait_time:0.7,
+			prints: 1,
+		},
+		{
+			symbol:'ETHBTC',
+			quantity:0,
+			stop_loss:0,
+			mode:'profit',
+			profit:1.0,
+			increasing:0.00000001,
+			decreasing:0.00000001,
+			loop:0,
+			wait_time:0.7,
+			prints: 1,
+		}
+	]
 
-##### `Ctrl + C`
-Pressing these two keys will terminate W.O.L.F and cancel any open orders that W.O.L.F created.  It will not cancel any open orders you might already have.
+	quantity     Buy/Sell Quantity (default 0) (If zero, auto calc)
+    amount       Buy/Sell BTC Amount (default 0)
+    symbol       Market Symbol (default XVGBTC or XVGETH)
+    profit       Target Profit Percentage (default 1.3)
+    stop_loss    Decrease sell price at loss Percentage (default 0)
+    orderid      Target Order Id (default 0)
+    wait_time    Wait Time (seconds) (default 0.7)
+    increasing   Buy Price Increasing  +(default 0.00000001)
+    decreasing   Sell Price Decreasing -(default 0.00000001)
+    prints       Scanning Profit Screen Print (default True)
+    loop         Loop (default 0 unlimited)
+    
+    mode         Working modes profit or range (default profit)
+                   profit: Profit Hunter. Find defined profit, buy and sell. (Ex: 1.3% profit)
+                   range: Between target two price, buy and sell. (Ex: <= 0.00000780 buy - >= 0.00000790 sell )
+                   
+    buyprice     Buy price (Ex: 0.00000780)
+    sellprice    Buy price (Ex: 0.00000790)
 
-### Logs
-##### `Queue: SOME_NUMBER, Watchlist: SOME_OTHER_NUMBER`
-`SOME_NUMBER` && `SOME_OTHER_NUMBER` are the number of items in the Queue and Watchlist respectfully.
+    
+    All binance symbols are supported.
+    
+## Test
+	
+	npm test
+    
+## DISCLAIMER
 
-##### `Purchasing... `
-Limit Buy Order was PLACED.
+    I am not responsible for anything done with this bot. 
+    You use it at your own risk. 
+    There are no warranties or guarantees expressed or implied. 
+    You assume all responsibility and liability.
+     
+## Contributing
 
-##### `PURCHASED. `
-Limit Buy Order was FILLED.
+    Fork this Repo
+    Commit your changes (git commit -m 'Add some feature')
+    Push to the changes (git push)
+    Create a new Pull Request
+    
+    Thanks all for your contributions...    
 
-##### `Selling... `
-Limit Sell Order was PLACED.
+## Donate
+	If this bot get some profit or if you want contribute with some coins to test feel free to donate
 
-##### `SOLD. `
-Limit Sell Order was FILLED.
-
-### Issues?
-Open up a ticket here to have a question answered or to report a bug: https://github.com/austinyearlykim/wolf/issues
-
-### Donations
-    BTC: 13w2zLgzpEfY8o3QYGzdCP1M6qXN9gwn62
-    LTC: LUKLmXd4oMbJr4RdV1K2hYgo6b43RQper6
-    ETH: 0x8140fd88fe77907eb96ceb7850751576da214715
-Be sure to reach out to me to get listed here after you've made a donation!  No donation is too big or small, but >.001btc to get listed as a supporter!  Successful pull requests get you there too!
-
-### Supporters
- - Chase Reid (@Chase-Reid)
- - @BatmanPDX
+	ETH: 0x09d70c877e5656adebb4e01e5d4ad7bc04d09e57
+	BTC: 1HKnqo9MM8AZY2jVcnoFLkVsN7ChoXBCHL
+	LTC: LVfyupcANzMQhJHCjetomGiq3rrB43r2uo
+---
